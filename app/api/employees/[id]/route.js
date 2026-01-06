@@ -1,0 +1,73 @@
+// FILE: app/api/employees/[id]/route.js
+import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import Employee from '@/lib/models/Employee';
+
+export async function GET(request, { params }) {
+  const { id } = await params;
+  try {
+    await connectDB();
+    const employee = await Employee.findById(id);
+    
+    if (!employee) {
+      return NextResponse.json({ success: false, error: 'Employee not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json({ success: true, data: employee });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+  }
+}
+
+export async function PUT(request, { params }) {
+  const { id } = await params;
+  try {
+    await connectDB();
+    const body = await request.json();
+    
+    // LOG THE INCOMING DATA
+    console.log('📥 Updating employee:', id);
+    console.log('📝 Body:', body);
+    
+    const employee = await Employee.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    });
+    
+    if (!employee) {
+      return NextResponse.json({ success: false, error: 'Employee not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json({ success: true, data: employee });
+  } catch (error) {
+    // LOG THE DETAILED ERROR
+    console.error('❌ Error updating employee:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error name:', error.name);
+    if (error.errors) {
+      console.error('❌ Validation errors:', error.errors);
+    }
+    
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message,
+      details: error.errors || null 
+    }, { status: 400 });
+  }
+}
+
+export async function DELETE(request, { params }) {
+  const { id } = await params;
+  try {
+    await connectDB();
+    const employee = await Employee.findByIdAndDelete(id);
+    
+    if (!employee) {
+      return NextResponse.json({ success: false, error: 'Employee not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json({ success: true, data: {} });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+  }
+}
