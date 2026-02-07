@@ -5,8 +5,9 @@ import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BookOpen } from 'lucide-react';
+import { Suspense } from 'react';
 
-export default function SignIn() {
+function SignInContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
@@ -103,4 +104,12 @@ export default function SignIn() {
             </div>
         </div>
     );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
+  );
 }

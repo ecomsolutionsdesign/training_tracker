@@ -1,5 +1,5 @@
-// FILE: app/api/schedules/[id]/route.js
-// ============================================
+//app/api/schedules/[id]/route.js
+
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Schedule from '@/models/Schedule';

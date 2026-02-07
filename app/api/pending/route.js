@@ -7,9 +7,6 @@ import Schedule from '@/models/Schedule';
 import Attendance from '@/models/Attendance';
 import { UNIVERSAL_DEPARTMENTS } from '@/constants/appConstants';
 
-// ADDED: Define universal departments
-// const UNIVERSAL_DEPARTMENTS = ['Top Management', 'HSE', 'HR'];
-
 export async function GET(request) {
   try {
     await connectDB();

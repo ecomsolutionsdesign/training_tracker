@@ -33,7 +33,7 @@ export default function TrainingStatusPage() {
             setAttendedEmployees([]);
             setPendingEmployees([]);
         }
-    }, [selectedTopic, selectedDepartment, employees, attendances, schedules]);
+    }, [selectedTopic, employees, attendances, schedules]);
 
     const loadAllData = async () => {
         setLoading(true);
@@ -93,7 +93,6 @@ export default function TrainingStatusPage() {
         t.department.toLowerCase().includes(topicSearchTerm.toLowerCase())
     );
 
-
     const checkTrainingStatus = () => {
         if (!selectedTopic) return;
 
@@ -103,24 +102,11 @@ export default function TrainingStatusPage() {
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-        // Filter employees by department
-        let filteredEmployees = employees;
-        if (selectedDepartment !== 'All') {
-            filteredEmployees = employees.filter(e => e.department === selectedDepartment);
-        }
-
         const attended = [];
         const pending = [];
 
-        filteredEmployees.forEach(employee => {
-            // Check if this topic is applicable to this employee
-            const topicDepartments = ['Top Management', 'HSE', 'HR']; // Universal departments
-            const isTopicApplicable =
-                topic.department === employee.department ||
-                topicDepartments.includes(topic.department);
-
-            if (!isTopicApplicable) return;
-
+        // Check all employees, regardless of department
+        employees.forEach(employee => {
             // Find if employee attended this topic in last 3 months
             const recentAttendance = attendances.find(att => {
                 if (!att.attended) return false;
@@ -158,13 +144,23 @@ export default function TrainingStatusPage() {
     };
 
     const filterEmployeesBySearch = (employeeList) => {
-        if (!searchTerm) return employeeList;
+        let filtered = employeeList;
 
-        const searchLower = searchTerm.toLowerCase();
-        return employeeList.filter(emp =>
-            emp.name.toLowerCase().includes(searchLower) ||
-            emp.department.toLowerCase().includes(searchLower)
-        );
+        // Filter by department if selected
+        if (selectedDepartment !== 'All') {
+            filtered = filtered.filter(emp => emp.department === selectedDepartment);
+        }
+
+        // Filter by search term
+        if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            filtered = filtered.filter(emp =>
+                emp.name.toLowerCase().includes(searchLower) ||
+                emp.department.toLowerCase().includes(searchLower)
+            );
+        }
+
+        return filtered;
     };
 
     const filteredAttended = filterEmployeesBySearch(attendedEmployees);
@@ -290,7 +286,10 @@ export default function TrainingStatusPage() {
                                 {' '}<span className="text-blue-700">({topics.find(t => t._id === selectedTopic)?.department})</span>
                             </p>
                             <p className="text-sm text-blue-800 mt-1">
-                                Checking attendance for last 3 months (since {new Date(new Date().setMonth(new Date().getMonth() - 3)).toLocaleDateString()})
+                                Showing all employees who attended this topic in the last 3 months (since {new Date(new Date().setMonth(new Date().getMonth() - 3)).toLocaleDateString()})
+                            </p>
+                            <p className="text-xs text-blue-700 mt-1">
+                                💡 Tip: Use the department filter and search to narrow down the results
                             </p>
                         </div>
                     )}
@@ -332,7 +331,10 @@ export default function TrainingStatusPage() {
                                 ) : (
                                     <div className="text-center py-8 text-gray-500">
                                         <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                                        <p>No employees have attended this training in the last 3 months</p>
+                                        <p>No employees found matching your filters</p>
+                                        {(selectedDepartment !== 'All' || searchTerm) && (
+                                            <p className="text-sm mt-2">Try adjusting the department filter or search term</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -371,7 +373,10 @@ export default function TrainingStatusPage() {
                                 ) : (
                                     <div className="text-center py-8 text-gray-500">
                                         <XCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                                        <p>All applicable employees have attended this training!</p>
+                                        <p>No pending employees found matching your filters</p>
+                                        {(selectedDepartment !== 'All' || searchTerm) && (
+                                            <p className="text-sm mt-2">Try adjusting the department filter or search term</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -387,7 +392,7 @@ export default function TrainingStatusPage() {
                         </h3>
                         <p className="text-gray-500">
                             Choose a training topic from the dropdown above to see which employees have attended
-                            and which ones are pending for that training.
+                            and which ones are pending for that training (across all departments).
                         </p>
                     </div>
                 )}
@@ -398,28 +403,45 @@ export default function TrainingStatusPage() {
                         <h3 className="text-lg font-bold mb-4">Quick Statistics</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="bg-blue-50 p-4 rounded-lg">
-                                <p className="text-sm text-blue-700">Total Applicable</p>
+                                <p className="text-sm text-blue-700">Total Employees</p>
                                 <p className="text-2xl font-bold text-blue-900">
-                                    {filteredAttended.length + filteredPending.length}
+                                    {attendedEmployees.length + pendingEmployees.length}
                                 </p>
                             </div>
                             <div className="bg-green-50 p-4 rounded-lg">
                                 <p className="text-sm text-green-700">Attended</p>
-                                <p className="text-2xl font-bold text-green-900">{filteredAttended.length}</p>
+                                <p className="text-2xl font-bold text-green-900">{attendedEmployees.length}</p>
                             </div>
                             <div className="bg-red-50 p-4 rounded-lg">
                                 <p className="text-sm text-red-700">Pending</p>
-                                <p className="text-2xl font-bold text-red-900">{filteredPending.length}</p>
+                                <p className="text-2xl font-bold text-red-900">{pendingEmployees.length}</p>
                             </div>
                             <div className="bg-purple-50 p-4 rounded-lg">
                                 <p className="text-sm text-purple-700">Completion Rate</p>
                                 <p className="text-2xl font-bold text-purple-900">
-                                    {filteredAttended.length + filteredPending.length > 0
-                                        ? Math.round((filteredAttended.length / (filteredAttended.length + filteredPending.length)) * 100)
+                                    {attendedEmployees.length + pendingEmployees.length > 0
+                                        ? Math.round((attendedEmployees.length / (attendedEmployees.length + pendingEmployees.length)) * 100)
                                         : 0}%
                                 </p>
                             </div>
                         </div>
+                        {(selectedDepartment !== 'All' || searchTerm) && (
+                            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                <p className="text-sm text-yellow-800">
+                                    📊 <strong>Filtered View:</strong> Showing results for {selectedDepartment !== 'All' ? `${selectedDepartment} department` : 'all departments'}
+                                    {searchTerm && ` matching "${searchTerm}"`}. 
+                                    <button 
+                                        onClick={() => {
+                                            setSelectedDepartment('All');
+                                            setSearchTerm('');
+                                        }}
+                                        className="ml-2 text-yellow-900 underline font-medium"
+                                    >
+                                        Clear filters
+                                    </button>
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
