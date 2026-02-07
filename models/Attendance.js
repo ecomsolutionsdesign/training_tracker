@@ -1,4 +1,4 @@
-// FILE: lib/models/Attendance.js
+// FILE: models/Attendance.js
 // ============================================
 import mongoose from 'mongoose';
 

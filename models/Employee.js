@@ -1,4 +1,4 @@
-// FILE: lib/models/Employee.js
+// FILE: models/Employee.js
 // ============================================
 import mongoose from 'mongoose';
 

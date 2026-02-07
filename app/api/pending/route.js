@@ -1,10 +1,10 @@
 // FILE: app/api/pending/route.js
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Employee from '@/lib/models/Employee';
-import Topic from '@/lib/models/Topic';
-import Schedule from '@/lib/models/Schedule';
-import Attendance from '@/lib/models/Attendance';
+import Employee from '@/models/Employee';
+import Topic from '@/models/Topic';
+import Schedule from '@/models/Schedule';
+import Attendance from '@/models/Attendance';
 import { UNIVERSAL_DEPARTMENTS } from '@/constants/appConstants';
 
 // ADDED: Define universal departments

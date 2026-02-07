@@ -1,16 +1,20 @@
-// FILE: app/layout.js
-// ============================================
+// app/layout.js
 import './globals.css';
+import Providers from './providers';
 
 export const metadata = {
   title: 'Training Tracker',
-  description: 'Employee Training Management System',
+  description: 'KTEX Employee Training Management System',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

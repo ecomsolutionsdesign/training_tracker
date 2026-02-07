@@ -1,4 +1,4 @@
-// FILE: lib/models/Topic.js
+// FILE: models/Topic.js
 // ============================================
 import mongoose from 'mongoose';
 

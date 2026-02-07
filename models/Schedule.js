@@ -1,4 +1,4 @@
-// FILE: lib/models/Schedule.js
+// FILE: models/Schedule.js
 // ============================================
 import mongoose from 'mongoose';
 

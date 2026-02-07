@@ -1,7 +1,7 @@
 // FILE: app/api/schedules/route.js
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Schedule from '@/lib/models/Schedule';
+import Schedule from '@/models/Schedule';
 
 export async function GET(request) {
   try {
