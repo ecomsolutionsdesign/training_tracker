@@ -262,7 +262,11 @@ export default function AttendancePage() {
                                     .filter(schedule => {
                                         if (!searchTerm) return true;
                                         const topics = schedule.topicIds;
-                                        const dateString = new Date(schedule.date).toLocaleDateString();
+                                        const dateString = new Date(schedule.date).toLocaleDateString('en-GB', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        });
                                         return (
                                             (topics[0]?.topic || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                                             (schedule.trainerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -283,7 +287,11 @@ export default function AttendancePage() {
 
                                         return (
                                             <tr key={schedule._id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 font-medium">{new Date(schedule.date).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 font-medium">{new Date(schedule.date).toLocaleDateString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                })}</td>
                                                 <td className="px-6 py-4">
                                                     <div>
                                                         <p className="font-medium text-gray-900">
@@ -300,17 +308,17 @@ export default function AttendancePage() {
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${attendedCount === assignedEmps.length && assignedEmps.length > 0 ? 'bg-green-100 text-green-800' :
-                                                            attendedCount > 0 ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-red-100 text-red-800'
+                                                        attendedCount > 0 ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-red-100 text-red-800'
                                                         }`}>
                                                         {attendedCount}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${avgRating === 'N/A' ? 'bg-gray-100 text-gray-800' :
-                                                            parseFloat(avgRating) >= 4 ? 'bg-green-100 text-green-800' :
-                                                                parseFloat(avgRating) >= 3 ? 'bg-yellow-100 text-yellow-800' :
-                                                                    'bg-red-100 text-red-800'
+                                                        parseFloat(avgRating) >= 4 ? 'bg-green-100 text-green-800' :
+                                                            parseFloat(avgRating) >= 3 ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-red-100 text-red-800'
                                                         }`}>
                                                         {avgRating}
                                                     </span>
@@ -357,7 +365,11 @@ export default function AttendancePage() {
                                     {attendanceForm.scheduleId && (() => {
                                         const schedule = schedules.find(s => s._id === attendanceForm.scheduleId);
                                         const topics = schedule?.topicIds || [];
-                                        const scheduleDate = schedule ? new Date(schedule.date).toLocaleDateString() : 'N/A';
+                                        const scheduleDate = schedule ? new Date(schedule.date).toLocaleDateString('en-GB', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        }) : 'N/A';
                                         const trainerName = schedule?.trainerName || 'N/A';
 
                                         return (

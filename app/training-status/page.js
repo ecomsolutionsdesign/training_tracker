@@ -130,7 +130,11 @@ export default function TrainingStatusPage() {
 
                 attended.push({
                     ...employee,
-                    attendanceDate: schedule ? new Date(schedule.date).toLocaleDateString() : 'N/A',
+                    attendanceDate: schedule ? new Date(schedule.date).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    }) : 'N/A',
                     rating: recentAttendance.rating,
                     trainerName: schedule?.trainerName || 'N/A'
                 });
@@ -286,7 +290,11 @@ export default function TrainingStatusPage() {
                                 {' '}<span className="text-blue-700">({topics.find(t => t._id === selectedTopic)?.department})</span>
                             </p>
                             <p className="text-sm text-blue-800 mt-1">
-                                Showing all employees who attended this topic in the last 3 months (since {new Date(new Date().setMonth(new Date().getMonth() - 3)).toLocaleDateString()})
+                                Showing all employees who attended this topic in the last 3 months (since {new Date(new Date().setMonth(new Date().getMonth() - 3)).toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                })})
                             </p>
                             <p className="text-xs text-blue-700 mt-1">
                                 💡 Tip: Use the department filter and search to narrow down the results
@@ -429,8 +437,8 @@ export default function TrainingStatusPage() {
                             <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                                 <p className="text-sm text-yellow-800">
                                     📊 <strong>Filtered View:</strong> Showing results for {selectedDepartment !== 'All' ? `${selectedDepartment} department` : 'all departments'}
-                                    {searchTerm && ` matching "${searchTerm}"`}. 
-                                    <button 
+                                    {searchTerm && ` matching "${searchTerm}"`}.
+                                    <button
                                         onClick={() => {
                                             setSelectedDepartment('All');
                                             setSearchTerm('');

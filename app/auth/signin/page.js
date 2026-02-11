@@ -46,7 +46,7 @@ function SignInContent() {
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8">
                 <div className="flex items-center justify-center gap-2 mb-6">
                     <BookOpen className="w-10 h-10 text-green-700" />
-                    <h1 className="text-2xl font-bold text-gray-800">KTEX Training System</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">Ktex Training System</h1>
                 </div>
                 
                 <h2 className="text-xl font-semibold text-center mb-6 text-gray-700">
@@ -96,11 +96,11 @@ function SignInContent() {
                     </button>
                 </form>
 
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                {/* <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm font-semibold text-blue-900 mb-2">Default Login Credentials:</p>
                     <p className="text-xs text-blue-800">Email: admin@ktex.com</p>
                     <p className="text-xs text-blue-800">Password: admin123</p>
-                </div>
+                </div> */}
             </div>
         </div>
     );

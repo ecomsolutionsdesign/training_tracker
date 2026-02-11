@@ -360,9 +360,9 @@ export default function SchedulesPage() {
                                         <div className="flex gap-2 mt-4">
                                             <button
                                                 onClick={() => openDetailModal(schedule)}
-                                                className={`flex-1 px-3 py-2 text-lg text-white rounded-lg transition ${isAttendanceMarked(schedule._id)    
-                                                        ? "bg-green-700 hover:bg-green-800"  // Default color
-                                                        : "bg-orange-600 hover:bg-orange-700" // Color for pending attendance
+                                                className={`flex-1 px-3 py-2 text-lg text-white rounded-lg transition ${isAttendanceMarked(schedule._id)
+                                                    ? "bg-green-700 hover:bg-green-800"  // Default color
+                                                    : "bg-orange-600 hover:bg-orange-700" // Color for pending attendance
                                                     }`}
                                             >
                                                 {isAttendanceMarked(schedule._id) ? "View Details" : "View Details (Attendance Pending)"}
@@ -553,7 +553,11 @@ export default function SchedulesPage() {
                                                         {topics.length > 5 && ` (+${topics.length - 5} more)`}
                                                     </h3>
                                                     <p className="text-gray-600 mt-1">Trainer: {selectedScheduleDetail.trainerName || 'N/A'}</p>
-                                                    <p className="text-gray-600">Date: {new Date(selectedScheduleDetail.date).toLocaleDateString()}</p>
+                                                    <p className="text-gray-600">Date: {new Date(selectedScheduleDetail.date).toLocaleDateString('en-GB', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric'
+                                                    })}</p>
                                                 </div>
                                                 <button
                                                     onClick={closeDetailModal}

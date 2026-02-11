@@ -234,7 +234,11 @@ export default function Dashboard() {
                                                 </p>
                                                 <p className="text-sm text-gray-600">Trainer: {schedule.trainerName || 'N/A'}</p>
                                             </div>
-                                            <span className="text-sm text-gray-700 font-bold">{new Date(schedule.date).toLocaleDateString()}</span>
+                                            <span className="text-sm text-gray-700 font-bold">{new Date(schedule.date).toLocaleDateString('en-GB', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            })}</span>
                                         </div>
                                     );
                                 })

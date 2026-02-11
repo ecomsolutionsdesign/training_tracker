@@ -377,8 +377,8 @@ export default function PendingPage() {
                                     <p className="text-xs text-blue-700 mt-1">Example:</p>
                                     <pre className="text-xs bg-blue-100 p-2 rounded mt-1">
                                         Employee Name,Training Topic
-                                        John Doe,Fire Safety Training
-                                        Jane Smith,First Aid Training</pre>
+                                        Test1 Patel,Fire Safety Training
+                                        Test2 Shah,First Aid Training</pre>
                                 </div>
 
                                 <div className="mb-4">
