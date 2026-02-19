@@ -30,9 +30,6 @@ export async function PUT(request, { params }) {
     await connectDB();
     const body = await request.json();
     
-    console.log('📥 Updating employee:', id);
-    console.log('📝 Body:', body);
-    
     const employee = await Employee.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

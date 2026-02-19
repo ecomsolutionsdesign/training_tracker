@@ -13,7 +13,7 @@ const EmployeeSchema = new mongoose.Schema({
     required: [true, 'Please provide department'],
     enum: [
       'Top Management', 'Marketing', 'Purchase', 'Store', 'Warehouse',
-      'Maintenance', 'Production', 'Quality Control', 'HSE', 'HR', 'Dispatch', 'IT'
+      'Maintenance', 'Production', 'Quality Control', 'HSE', 'HR', 'Dispatch', 'IT', 'Accounts'
     ],
   },
   role: {

@@ -45,7 +45,7 @@ async function seedAdmin() {
 
     console.log('✅ Admin user created successfully!');
     console.log('Email: admin@ktex.com');
-    console.log('Password: admin123');
+    console.log('Password: admin12345');
     console.log('\n⚠️  Please change the password after first login!');
 
     await mongoose.connection.close();
