@@ -1,4 +1,4 @@
-// FILE: app/api/pending/route.js
+//app/api/pending/route.js
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Employee from '@/models/Employee';
@@ -10,27 +10,27 @@ import { UNIVERSAL_DEPARTMENTS } from '@/constants/appConstants';
 export async function GET(request) {
   try {
     await connectDB();
-    
+
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employeeId');
     const department = searchParams.get('department');
-    
+
     // Calculate date 3 months ago
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    
+
     // Get employees based on filter
     let employees;
     if (employeeId) {
-      employees = await Employee.find({ _id: employeeId });
+      employees = await Employee.find({ _id: employeeId, isActive: true });
     } else if (department && department !== 'All') {
-      employees = await Employee.find({ department });
+      employees = await Employee.find({ department, isActive: true });
     } else {
-      employees = await Employee.find();
+      employees = await Employee.find({ isActive: true });
     }
-    
+
     const pendingData = [];
-    
+
     for (const employee of employees) {
       // CORRECTED: Get applicable topics (department-specific + universal)
       const applicableTopics = await Topic.find({
@@ -54,10 +54,10 @@ export async function GET(request) {
         scheduleId: { $in: attendedSchedules.map(s => s._id) },
         attended: true
       });
-      
+
       // 4. Get the full list of all topic IDs completed by this employee
       const completedTopicIds = new Set();
-      
+
       const attendedScheduleIds = recentAttendances.map(att => att.scheduleId.toString());
 
       // Iterate through the schedules the employee was invited to and attended
@@ -67,12 +67,12 @@ export async function GET(request) {
           // Add all topics from this attended schedule to the completed set
           schedule.topicIds.forEach(topicId => completedTopicIds.add(topicId.toString()));
         });
-      
+
       // 5. CORRECTED: Find pending topics from applicable topics (not just department topics)
       const pendingTopics = applicableTopics.filter(
         topic => !completedTopicIds.has(topic._id.toString())
       );
-      
+
       if (pendingTopics.length > 0) {
         pendingData.push({
           employee: employee,
@@ -80,7 +80,7 @@ export async function GET(request) {
         });
       }
     }
-    
+
     return NextResponse.json({ success: true, data: pendingData });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });

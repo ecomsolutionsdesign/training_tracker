@@ -16,6 +16,16 @@ const TopicSchema = new mongoose.Schema({
       'Maintenance', 'Production', 'Quality Control', 'HSE', 'HR', 'Dispatch', 'IT', 'Accounts'
     ],
   },
+  duration: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    trainerName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
 }, {
   timestamps: true,
 });

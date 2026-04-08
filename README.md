@@ -960,6 +960,9 @@ Shows at bottom:
 - Updates immediately after attendance marked
 
 ---
+## changeing features1
+install following module
+pip install reportlab
 
 ## 📞 Support
 
@@ -973,3 +976,89 @@ For issues or questions:
 **Features Added:** February 2026  
 **Version:** 1.1.0  
 **Status:** ✅ Production Ready
+
+# Training Tracker - New Features Guide
+
+## Files Changed / Created
+
+### 1. `constants/appConstants.js` ✅ UPDATED
+- Added `POSITIONS` array (34 job positions from Production Engineer to Security Guard)
+- Added `TRAINING_DURATIONS` array (0.5 hr → 1 Week)
+- All existing constants unchanged
+
+### 2. `models/Employee.js` ✅ UPDATED
+- Added `position` field (String, optional)
+
+### 3. `models/Topic.js` ✅ UPDATED
+- Added `duration` field (String, e.g. "2 hrs")
+- Added `trainerName` field (String — default trainer for this topic)
+
+### 4. `models/PositionTopicMap.js` 🆕 NEW
+- Maps each Position → array of required Topic IDs
+- Unique per position (upsert on save)
+
+### 5. `app/api/position-topics/route.js` 🆕 NEW
+- `GET /api/position-topics` — fetch all mappings (or `?position=<name>` for one)
+- `POST /api/position-topics` — save/update mapping for a position
+
+### 6. `app/api/training-program-pdf/route.js` 🆕 NEW
+- `GET /api/training-program-pdf?employeeId=<id>`
+- Generates a professional A4 PDF Training Program document
+- Shows all required topics for the employee's position + universal topics (HSE, HR)
+- Marks each topic as Done/Pending based on attendance (last 3 months)
+- Includes HR Manager, Department Head, Employee signature blocks
+- Uses Python + reportlab (must be installed on server)
+
+### 7. `app/employees/page.js` ✅ UPDATED
+- Added **Position** dropdown in add/edit form
+- Added **Training PDF** download button per employee
+- Position shown in the table
+
+### 8. `app/topics/page.js` ✅ UPDATED
+- Added **Duration** dropdown in add/edit form
+- Added **Default Trainer Name** input in add/edit form
+- Duration and Trainer shown in the table
+
+### 9. `app/position-topics/page.js` 🆕 NEW
+- Full page to manage which topics are required for each position
+- Left panel: list of all positions with topic count badges
+- Right panel: searchable/filterable topic checklist grouped by department
+- "Select All / Clear All" and per-department expand/collapse
+- Progress bar for current selection
+- Save button (calls POST /api/position-topics)
+- Summary cards at the bottom
+
+### 10. `components/Layout.js` ✅ UPDATED
+- Added "Position Topics" nav item (Briefcase icon)
+- Minor cleanup: consolidated nav items into array for maintainability
+- Slightly tighter spacing for nav tabs
+
+---
+
+## Setup Steps
+
+### Install Python dependency on your server:
+```bash
+pip install reportlab
+```
+
+### Add the new model to your MongoDB by just using it — Mongoose will auto-create the collection.
+
+---
+
+## How It Works: Employee Training Program Flow
+
+1. **Admin sets up topics** with Duration and Default Trainer Name
+2. **Admin maps topics to positions** via the new "Position Topics" page
+3. **When adding an employee**, assign their Position — their required training topics are automatically determined
+4. **Download PDF** from the Employees page — generates a Training Program document showing:
+   - All required topics (from position mapping + universal HSE/HR topics)
+   - Each topic's status: ✅ Done (with date) or ⏳ Pending
+   - Signature blocks for HR Manager, Department Head, Employee
+
+---
+
+## Notes
+- Topics in `UNIVERSAL_DEPARTMENTS` (Top Management, HSE, HR) apply to **all employees** regardless of position
+- The PDF uses attendance data from the **last 3 months** (same as the rest of the app)
+- Position mapping is stored separately from the employee — changing a position's mapping retroactively affects future PDF downloads for all employees in that position

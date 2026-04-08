@@ -16,11 +16,24 @@ const EmployeeSchema = new mongoose.Schema({
       'Maintenance', 'Production', 'Quality Control', 'HSE', 'HR', 'Dispatch', 'IT', 'Accounts'
     ],
   },
+  position: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   role: {
     type: String,
     required: [true, 'Please provide role'],
     enum: ['admin', 'qa-officer', 'department-head', 'user'],
     default: 'user',
+  },
+   isActive: {
+    type: Boolean,
+    default: true,   // all existing employees remain active automatically
+  },
+  deactivatedAt: {
+    type: Date,
+    default: null,   // set when employee is deactivated
   },
 }, {
   timestamps: true,

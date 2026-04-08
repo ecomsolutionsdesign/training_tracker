@@ -9,10 +9,23 @@ export async function GET(request) {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const department = searchParams.get('department');
-    
-    const filter = department && department !== 'All' ? { department } : {};
-    const employees = await Employee.find(filter).sort({ createdAt: -1 });
-    
+    // ?showAll=true  →  admin-only flag to include deactivated employees
+    const showAll = searchParams.get('showAll') === 'true';
+
+    const filter = {};
+
+    if (department && department !== 'All') {
+      filter.department = department;
+    }
+
+    // By default only return active employees.
+    // Pass ?showAll=true to include deactivated ones (admin use).
+    if (!showAll) {
+      filter.isActive = true;
+    }
+
+    const employees = await Employee.find(filter).sort({ isActive: -1, createdAt: -1 });
+
     return NextResponse.json({ success: true, data: employees });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
@@ -28,7 +41,7 @@ export async function POST(request) {
     await connectDB();
     const body = await request.json();
     const employee = await Employee.create(body);
-    
+
     return NextResponse.json({ success: true, data: employee }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
