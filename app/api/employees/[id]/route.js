@@ -41,13 +41,14 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ success: true, data: employee });
   } catch (error) {
-    console.error('❌ Error updating employee:', error.message);
-    if (error.errors) console.error('❌ Validation errors:', error.errors);
+    const detailedErrors = error.name === 'ValidationError'
+      ? Object.values(error.errors).map(val => val.message)
+      : error.message;
 
     return NextResponse.json({
       success: false,
-      error: error.message,
-      details: error.errors || null,
+      error: "Validation Failed",
+      details: detailedErrors,
     }, { status: 400 });
   }
 }
@@ -60,10 +61,10 @@ export async function PUT(request, { params }) {
 export async function PATCH(request, { params }) {
   try {
     await connectDB();
-    
+
     // 1. Await params and get the ID
-    const { id } = await params; 
-    
+    const { id } = await params;
+
     // 2. Parse the body
     const body = await request.json();
     const { isActive } = body;
@@ -73,7 +74,7 @@ export async function PATCH(request, { params }) {
 
     if (!employee) {
       return NextResponse.json(
-        { success: false, error: 'Employee not found' }, 
+        { success: false, error: 'Employee not found' },
         { status: 404 }
       );
     }
@@ -93,12 +94,12 @@ export async function PATCH(request, { params }) {
     console.error("DETAILED PATCH ERROR:", error);
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: error.message,
         // Optional: send validation details to frontend for debugging
-        details: error.errors ? Object.keys(error.errors) : null 
-      }, 
+        details: error.errors ? Object.keys(error.errors) : null
+      },
       { status: 400 }
     );
   }

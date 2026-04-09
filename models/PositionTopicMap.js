@@ -1,17 +1,13 @@
 // models/PositionTopicMap.js
 import mongoose from 'mongoose';
 
-/**
- * Maps a job Position to its required training Topics.
- * One document per position; topicIds is an array of Topic ObjectIds.
- */
 const PositionTopicMapSchema = new mongoose.Schema(
   {
     position: {
-      type: String,
-      required: [true, 'Please provide a position'],
+      type: mongoose.Schema.Types.ObjectId, // Changed from String to ObjectId
+      ref: 'Position',                      // Reference to the Position model
+      required: [true, 'Please provide a position reference'],
       unique: true,
-      trim: true,
     },
     topicIds: [
       {

@@ -301,8 +301,8 @@ export async function GET(request) {
             );
         }
 
-        // ── Fetch employee ─────────────────────────────────────────────────────
-        const employee = await Employee.findById(employeeId);
+        // FIX: populate position so we have both _id and name
+        const employee = await Employee.findById(employeeId).populate('position');
         if (!employee) {
             return NextResponse.json(
                 { success: false, error: 'Employee not found' },
@@ -310,12 +310,12 @@ export async function GET(request) {
             );
         }
 
-        // ── Fetch topics: ONLY what is explicitly assigned to this position ──────
-        const posMap = employee.position
-            ? await PositionTopicMap.findOne({ position: employee.position }).populate('topicIds')
+        // FIX: employee.position is now the full Position document (after populate)
+        const positionDoc = employee.position; // already the Position object
+        const posMap = positionDoc
+            ? await PositionTopicMap.findOne({ position: positionDoc._id }).populate('topicIds')
             : null;
 
-        // Strictly use only the topics saved in the position mapping — nothing more
         const allTopics = posMap?.topicIds || [];
 
         if (allTopics.length === 0) {
@@ -323,14 +323,13 @@ export async function GET(request) {
                 {
                     success: false,
                     error:
-                        `No training topics are assigned for position "${employee.position || '(none)'}". ` +
+                        `No training topics are assigned for position "${positionDoc?.name || '(none)'}". ` +
                         'Please configure the Position → Topics mapping first.',
                 },
                 { status: 400 }
             );
         }
 
-        // ── Attendance in last 3 months ────────────────────────────────────────
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
@@ -357,7 +356,6 @@ export async function GET(request) {
             });
         });
 
-        // ── Build rows: attended first, then alphabetical ──────────────────────
         const rows = allTopics
             .map((t) => {
                 const tid = t._id.toString();
@@ -381,13 +379,13 @@ export async function GET(request) {
             pending: rows.filter((r) => !r.attended).length,
         };
 
-        // ── Generate PDF ───────────────────────────────────────────────────────
         const pdf = new TrainingPDF();
         pdf.generate(
             {
                 name: employee.name,
                 department: employee.department,
-                position: employee.position || '',
+                // FIX: use the populated position's name field
+                position: positionDoc?.name || '',
             },
             rows,
             stats
@@ -413,4 +411,3 @@ export async function GET(request) {
         );
     }
 }
-

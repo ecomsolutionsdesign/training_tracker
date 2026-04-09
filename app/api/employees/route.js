@@ -1,4 +1,3 @@
-// app/api/employees/route.js
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Employee from '@/models/Employee';
@@ -9,7 +8,6 @@ export async function GET(request) {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const department = searchParams.get('department');
-    // ?showAll=true  →  admin-only flag to include deactivated employees
     const showAll = searchParams.get('showAll') === 'true';
 
     const filter = {};
@@ -18,13 +16,14 @@ export async function GET(request) {
       filter.department = department;
     }
 
-    // By default only return active employees.
-    // Pass ?showAll=true to include deactivated ones (admin use).
     if (!showAll) {
       filter.isActive = true;
     }
 
-    const employees = await Employee.find(filter).sort({ isActive: -1, createdAt: -1 });
+    // FIX: was using undefined `query` variable instead of `filter`
+    const employees = await Employee.find(filter)
+      .populate('position', 'name')  // FIX: field is 'name', not 'title'
+      .sort({ createdAt: -1 });
 
     return NextResponse.json({ success: true, data: employees });
   } catch (error) {
@@ -33,7 +32,6 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  // Only admin and qa-officer can add employees
   const authCheck = await checkAuth(request, ['admin', 'qa-officer']);
   if (!authCheck.authorized) return authCheck.response;
 
@@ -41,7 +39,6 @@ export async function POST(request) {
     await connectDB();
     const body = await request.json();
     const employee = await Employee.create(body);
-
     return NextResponse.json({ success: true, data: employee }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });

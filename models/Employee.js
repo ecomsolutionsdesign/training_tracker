@@ -17,10 +17,10 @@ const EmployeeSchema = new mongoose.Schema({
     ],
   },
   position: {
-      type: String,
-      trim: true,
-      default: '',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Position',
+    required: [true, 'Please provide a position'],
+  },
   role: {
     type: String,
     required: [true, 'Please provide role'],
