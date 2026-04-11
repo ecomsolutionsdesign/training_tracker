@@ -73,7 +73,7 @@ export default function EmployeesPage() {
                     // FIX: position is now a populated object; store its _id for the form
                     position: item.position?._id?.toString() || '',
                     role: item.role,
-                  }
+                }
                 : { name: '', department: '', position: '', role: 'user' }
         );
         setShowModal(true);
@@ -224,11 +224,10 @@ export default function EmployeesPage() {
                     {isAdmin && (
                         <button
                             onClick={() => setShowDeactivated((prev) => !prev)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition text-sm font-medium ${
-                                showDeactivated
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition text-sm font-medium ${showDeactivated
                                     ? 'bg-amber-50 border-amber-400 text-amber-700'
                                     : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
-                            }`}
+                                }`}
                         >
                             {showDeactivated ? (
                                 <><Eye className="w-4 h-4" /> Showing All (incl. Inactive)</>
@@ -312,13 +311,16 @@ export default function EmployeesPage() {
 
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => openModal(emp)}
-                                                    disabled={!emp.isActive}
-                                                    className="text-green-600 hover:text-green-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
+                                                {/* Edit: admin only */}
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={() => openModal(emp)}
+                                                        disabled={!emp.isActive}
+                                                        className="text-green-600 hover:text-green-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
 
                                                 {isAdmin && (
                                                     <button

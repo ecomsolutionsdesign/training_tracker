@@ -4,8 +4,6 @@ import connectDB from '@/lib/mongodb';
 import PositionTopicMap from '@/models/PositionTopicMap';
 import { checkAuth } from '@/lib/auth';
 
-// ... existing imports
-
 export async function GET(request) {
   try {
     await connectDB();

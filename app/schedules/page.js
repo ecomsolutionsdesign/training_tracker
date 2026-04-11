@@ -450,7 +450,7 @@ export default function SchedulesPage() {
                                                         }}
                                                         className="w-4 h-4 text-green-600 focus:ring-green-500"
                                                     />
-                                                    <span>{topic.topic} - <span className="font-medium text-gray-700">{topic.department}</span></span>
+                                                    <span>{topic.topic} - <span className="font-medium text-gray-700">{topic.department}</span>- <span className="font-medium text-gray-700">{topic.trainerName}</span></span>
                                                 </label>
                                             ))}
                                             {filteredModalTopics.length === 0 && (
@@ -498,7 +498,7 @@ export default function SchedulesPage() {
                                                         }}
                                                         className="w-4 h-4 text-green-600 focus:ring-green-500"
                                                     />
-                                                    <span>{emp.name} - {emp.department}</span>
+                                                    <span>{emp.name} - {emp.department} - {emp.position?.name}</span>
                                                 </label>
                                             ))}
                                             {filteredModalEmployees.length === 0 && (

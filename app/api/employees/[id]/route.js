@@ -22,7 +22,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   // Only admin and qa-officer can update employees
-  const authCheck = await checkAuth(request, ['admin', 'qa-officer']);
+  const authCheck = await checkAuth(request, ['admin']);
   if (!authCheck.authorized) return authCheck.response;
 
   const { id } = await params;
@@ -59,6 +59,8 @@ export async function PUT(request, { params }) {
  * Only admin can activate/deactivate.
  */
 export async function PATCH(request, { params }) {
+  const authCheck = await checkAuth(request, ['admin']);
+  if (!authCheck.authorized) return authCheck.response;
   try {
     await connectDB();
 
