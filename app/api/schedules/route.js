@@ -1,4 +1,43 @@
-//app/api/schedules/route.js
+// //app/api/schedules/route.js
+// import { NextResponse } from 'next/server';
+// import connectDB from '@/lib/mongodb';
+// import Schedule from '@/models/Schedule';
+
+// export async function GET(request) {
+//   try {
+//     await connectDB();
+//     const schedules = await Schedule.find()
+//       .populate('topicIds')
+//       .populate('employeeIds')
+//       .sort({ date: -1 });
+    
+//     return NextResponse.json({ success: true, data: schedules });
+//   } catch (error) {
+//     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+//   }
+// }
+
+// export async function POST(request) {
+//   try {
+//     await connectDB();
+//     const body = await request.json();
+
+//     if (!body.topicIds || body.topicIds.length === 0) {
+//         return NextResponse.json({ success: false, error: 'Please provide at least one topic ID' }, { status: 400 });
+//     }
+
+//     const schedule = await Schedule.create(body);
+//     const populatedSchedule = await Schedule.findById(schedule._id)
+//       .populate('topicIds')
+//       .populate('employeeIds');
+    
+//     return NextResponse.json({ success: true, data: populatedSchedule }, { status: 201 });
+//   } catch (error) {
+//     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+//   }
+// }
+
+// app/api/schedules/route.js
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Schedule from '@/models/Schedule';
@@ -9,8 +48,9 @@ export async function GET(request) {
     const schedules = await Schedule.find()
       .populate('topicIds')
       .populate('employeeIds')
+      .populate('trainer', 'name email role')
       .sort({ date: -1 });
-    
+
     return NextResponse.json({ success: true, data: schedules });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
@@ -23,14 +63,18 @@ export async function POST(request) {
     const body = await request.json();
 
     if (!body.topicIds || body.topicIds.length === 0) {
-        return NextResponse.json({ success: false, error: 'Please provide at least one topic ID' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Please provide at least one topic ID' }, { status: 400 });
+    }
+    if (!body.trainer) {
+      return NextResponse.json({ success: false, error: 'Please provide a trainer' }, { status: 400 });
     }
 
     const schedule = await Schedule.create(body);
     const populatedSchedule = await Schedule.findById(schedule._id)
       .populate('topicIds')
-      .populate('employeeIds');
-    
+      .populate('employeeIds')
+      .populate('trainer', 'name email role');
+
     return NextResponse.json({ success: true, data: populatedSchedule }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });

@@ -313,7 +313,8 @@ export async function GET(request) {
         // FIX: employee.position is now the full Position document (after populate)
         const positionDoc = employee.position; // already the Position object
         const posMap = positionDoc
-            ? await PositionTopicMap.findOne({ position: positionDoc._id }).populate('topicIds')
+            ? await PositionTopicMap.findOne({ position: positionDoc._id })
+                .populate({ path: 'topicIds', populate: { path: 'trainer', select: 'name' } })
             : null;
 
         const allTopics = posMap?.topicIds || [];
@@ -337,7 +338,9 @@ export async function GET(request) {
             employeeId: employee._id,
             attended: true,
         });
-        const schedules = await Schedule.find({}).populate('topicIds');
+        const schedules = await Schedule.find({})
+            .populate('topicIds')
+            .populate('trainer', 'name email role');
 
         const completedTopicIds = new Set();
         const topicDateMap = {};
@@ -356,14 +359,38 @@ export async function GET(request) {
             });
         });
 
+        // const rows = allTopics
+        //     .map((t) => {
+        //         const tid = t._id.toString();
+        //         return {
+        //             topic: t.topic,
+        //             dept: t.department,
+        //             duration: t.duration || '',
+        //             trainerName: t.trainerName || '',
+        //             attended: completedTopicIds.has(tid),
+        //             attendedDate: topicDateMap[tid] || '',
+        //         };
+        //     })
+        //     .sort((a, b) => {
+        //         if (a.attended !== b.attended) return a.attended ? -1 : 1;
+        //         return a.topic.localeCompare(b.topic);
+        //     });
+
+        // In the GET handler, replace the rows mapping:
         const rows = allTopics
             .map((t) => {
                 const tid = t._id.toString();
+                // trainer name now comes from populated User object on the schedule
+                const matchedSchedule = schedules.find(s =>
+                    completedTopicIds.has(tid) &&
+                    s.topicIds.some(st => (st._id || st).toString() === tid)
+                );
                 return {
                     topic: t.topic,
                     dept: t.department,
                     duration: t.duration || '',
-                    trainerName: t.trainerName || '',
+                    // trainer from Topic's populated User, or from schedule's trainer
+                    trainerName: t.trainer?.name || matchedSchedule?.trainer?.name || '',
                     attended: completedTopicIds.has(tid),
                     attendedDate: topicDateMap[tid] || '',
                 };

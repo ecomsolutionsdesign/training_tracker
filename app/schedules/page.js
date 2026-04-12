@@ -21,13 +21,14 @@ export default function SchedulesPage() {
     const [scheduleForm, setScheduleForm] = useState({
         date: '',
         topicIds: [],
-        trainerName: '',
+        trainer: '',
         employeeIds: []
     });
     const [topicSearchTerm, setTopicSearchTerm] = useState('');
     const [employeeSearchTerm, setEmployeeSearchTerm] = useState('');
     const [selectAllTopics, setSelectAllTopics] = useState(false);
     const [selectAllEmployees, setSelectAllEmployees] = useState(false);
+    const [trainers, setTrainers] = useState([]);
 
     useEffect(() => {
         loadAllData();
@@ -40,8 +41,19 @@ export default function SchedulesPage() {
             fetchEmployees(),
             fetchTopics(),
             fetchAttendances(),
+            fetchTrainers(),    // ADD THIS
         ]);
         setLoading(false);
+    };
+
+    const fetchTrainers = async () => {
+        try {
+            const res = await fetch('/api/users/trainers');
+            const data = await res.json();
+            if (data.success) setTrainers(data.data);
+        } catch (error) {
+            console.error('Error fetching trainers:', error);
+        }
     };
 
     const fetchSchedules = async () => {
@@ -88,13 +100,13 @@ export default function SchedulesPage() {
         return attendances.some(a => (a.scheduleId?._id || a.scheduleId) === scheduleId);
     };
 
-    const canMarkAttendance = (scheduleDate) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const schedule = new Date(scheduleDate);
-        schedule.setHours(0, 0, 0, 0);
-        return schedule <= today;
-    };
+    // const canMarkAttendance = (scheduleDate) => {
+    //     const today = new Date();
+    //     today.setHours(0, 0, 0, 0);
+    //     const schedule = new Date(scheduleDate);
+    //     schedule.setHours(0, 0, 0, 0);
+    //     return schedule <= today;
+    // };
 
     const openModal = (item = null) => {
         if (item) {
@@ -112,16 +124,16 @@ export default function SchedulesPage() {
         setScheduleForm(item ? {
             date: new Date(item.date).toISOString().split('T')[0],
             topicIds: item.topicIds?.map(t => t._id || t) || [],
-            trainerName: item.trainerName || '',
+            trainer: (typeof item.trainer === 'object' && item.trainer !== null) ? item.trainer._id.toString() : (item.trainer || ''),
             employeeIds: item.employeeIds?.map(e => e._id || e) || []
-        } : { date: '', topicIds: [], trainerName: '', employeeIds: [] });
+        } : { date: '', topicIds: [], trainer: '', employeeIds: [] });
         setShowModal(true);
     };
 
     const closeModal = () => {
         setShowModal(false);
         setEditItem(null);
-        setScheduleForm({ date: '', topicIds: [], trainerName: '', employeeIds: [] });
+        setScheduleForm({ date: '', topicIds: [], trainer: '', employeeIds: [] });
         setTopicSearchTerm('');
         setEmployeeSearchTerm('');
         setSelectAllTopics(false);
@@ -170,8 +182,8 @@ export default function SchedulesPage() {
             return;
         }
 
-        if (!scheduleForm.date || scheduleForm.topicIds.length === 0 || !scheduleForm.trainerName || scheduleForm.employeeIds.length === 0) {
-            alert('⚠️ Please fill in all required fields:\n- Date\n- At least one topic\n- Trainer name\n- At least one employee');
+        if (!scheduleForm.date || scheduleForm.topicIds.length === 0 || !scheduleForm.trainer || scheduleForm.employeeIds.length === 0) {
+            alert('⚠️ Please fill in all required fields:\n- Date\n- At least one topic\n- Trainer\n- At least one employee');
             return;
         }
 
@@ -183,7 +195,7 @@ export default function SchedulesPage() {
             const payload = {
                 date: scheduleForm.date,
                 topicIds: scheduleForm.topicIds,
-                trainerName: scheduleForm.trainerName,
+                trainer: scheduleForm.trainer,
                 employeeIds: scheduleForm.employeeIds,
             };
 
@@ -335,7 +347,7 @@ export default function SchedulesPage() {
                                                 <Calendar className='w-4 h-4' /> {dateFormatted}
                                             </p>
                                             <div className="flex flex-wrap gap-2 mb-3">
-                                                <p className="text-sm text-gray-600">Trainer: {schedule.trainerName || 'N/A'}</p>
+                                                <p className="text-sm text-gray-600">Trainer: {schedule.trainer?.name || schedule.trainerName || 'N/A'}</p>
                                                 <span className="text-sm font-medium text-gray-700">Departments:</span>
                                                 {[...new Set(topics.map(t => t.department))].map((dept, idx) => (
                                                     <span key={idx} className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">{dept}</span>
@@ -401,14 +413,21 @@ export default function SchedulesPage() {
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Trainer Name</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter trainer name"
-                                            value={scheduleForm.trainerName}
-                                            onChange={(e) => setScheduleForm({ ...scheduleForm, trainerName: e.target.value })}
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Trainer <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={scheduleForm.trainer}
+                                            onChange={(e) => setScheduleForm({ ...scheduleForm, trainer: e.target.value })}
                                             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
-                                        />
+                                        >
+                                            <option value="">Select Trainer</option>
+                                            {trainers.map((t) => (
+                                                <option key={t._id} value={t._id}>
+                                                    {t.name} ({t.department})
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Select Topics</label>
@@ -439,7 +458,18 @@ export default function SchedulesPage() {
                                                         checked={scheduleForm.topicIds.includes(topic._id)}
                                                         onChange={(e) => {
                                                             if (e.target.checked) {
-                                                                setScheduleForm(prevForm => ({ ...prevForm, topicIds: [...prevForm.topicIds, topic._id] }));
+                                                                setScheduleForm(prevForm => {
+                                                                    const newTopicIds = [...prevForm.topicIds, topic._id];
+                                                                    // Auto-set trainer based on first selected topic's department
+                                                                    const firstTopic = topics.find(t => t._id === newTopicIds[0]);
+                                                                    const defaultTrainer = trainers.find(t => t.department === firstTopic?.department);
+                                                                    return {
+                                                                        ...prevForm,
+                                                                        topicIds: newTopicIds,
+                                                                        // Only auto-set if trainer not already manually chosen
+                                                                        trainer: prevForm.trainer || defaultTrainer?._id || ''
+                                                                    };
+                                                                });
                                                             } else {
                                                                 setSelectAllTopics(false);
                                                                 setScheduleForm(prevForm => ({
@@ -450,7 +480,7 @@ export default function SchedulesPage() {
                                                         }}
                                                         className="w-4 h-4 text-green-600 focus:ring-green-500"
                                                     />
-                                                    <span>{topic.topic} - <span className="font-medium text-gray-700">{topic.department}</span>- <span className="font-medium text-gray-700">{topic.trainerName}</span></span>
+                                                    <span>{topic.topic} - <span className="font-medium text-gray-700">{topic.department}</span>- <span className="font-medium text-gray-700">{topic.trainer?.name}</span></span>
                                                 </label>
                                             ))}
                                             {filteredModalTopics.length === 0 && (
@@ -552,7 +582,7 @@ export default function SchedulesPage() {
                                                         {topics.slice(0, 5).map(t => t.topic).join(', ') || 'Unknown Topic'}
                                                         {topics.length > 5 && ` (+${topics.length - 5} more)`}
                                                     </h3>
-                                                    <p className="text-gray-600 mt-1">Trainer: {selectedScheduleDetail.trainerName || 'N/A'}</p>
+                                                    <p className="text-gray-600 mt-1">Trainer: {selectedScheduleDetail.trainer?.name || 'N/A'}</p>
                                                     <p className="text-gray-600">Date: {new Date(selectedScheduleDetail.date).toLocaleDateString('en-GB', {
                                                         day: '2-digit',
                                                         month: '2-digit',

@@ -67,7 +67,12 @@ export default function AttendancePage() {
         try {
             const res = await fetch('/api/schedules');
             const data = await res.json();
-            if (data.success) setSchedules(data.data);
+            if (data.success) {
+                console.log('Sample Schedule Trainer:', data.data[0]?.trainer);
+                // If this logs a string (ID), population failed in backend.
+                // If this logs an object { _id, name, ... }, population worked.
+                setSchedules(data.data);
+            }
         } catch (error) {
             console.error('Error fetching schedules:', error);
         }
@@ -273,7 +278,7 @@ export default function AttendancePage() {
                                         });
                                         return (
                                             (topics[0]?.topic || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                            (schedule.trainerName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            (schedule.trainer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                                             dateString.includes(searchTerm)
                                         );
                                     })
@@ -299,10 +304,12 @@ export default function AttendancePage() {
                                                 <td className="px-6 py-4">
                                                     <div>
                                                         <p className="font-medium text-gray-900">
-                                                            {topics.slice(0, 5).map(t => t.topic).join(', ') || 'Unknown Topic'}
-                                                            {topics.length > 5 && ` (+${topics.length - 5} more)`}
+                                                            {schedule.topicIds?.map(t => t.topic).join(', ') || 'Unknown Topic'}
                                                         </p>
-                                                        <p className="text-sm text-gray-600">Trainer: {schedule.trainerName || 'N/A'}</p>
+                                                        {/* ACCESSING THE TRAINER NAME HERE */}
+                                                        <p className="text-sm text-gray-600">
+                                                            Trainer: {schedule.trainer?.name || 'Not Assigned'}
+                                                        </p>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
@@ -387,7 +394,7 @@ export default function AttendancePage() {
                                             month: '2-digit',
                                             year: 'numeric'
                                         }) : 'N/A';
-                                        const trainerName = schedule?.trainerName || 'N/A';
+                                        const trainerName = schedule?.trainer?.name || 'N/A';
 
                                         return (
                                             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
@@ -400,7 +407,7 @@ export default function AttendancePage() {
                                                     <strong>Date:</strong> {scheduleDate}
                                                 </p>
                                                 <p className="text-sm text-green-800">
-                                                    <strong>Trainer:</strong> {trainerName}
+                                                    <strong>Trainer:</strong> { trainerName }
                                                 </p>
                                             </div>
                                         );
@@ -544,7 +551,7 @@ export default function AttendancePage() {
                                                         {topics.slice(0, 5).map(t => t.topic).join(', ') || 'Unknown Topic'}
                                                         {topics.length > 5 && ` (+${topics.length - 5} more)`}
                                                     </h3>
-                                                    <p className="text-gray-600 mt-1">Trainer: {selectedScheduleDetail.trainerName || 'N/A'}</p>
+                                                    <p className="text-gray-600 mt-1">Trainer: {selectedScheduleDetail.trainer?.name || selectedScheduleDetail.trainerName || 'N/A'}</p>
                                                     <p className="text-gray-600">Date: {new Date(selectedScheduleDetail.date).toLocaleDateString()}</p>
                                                 </div>
                                                 <button

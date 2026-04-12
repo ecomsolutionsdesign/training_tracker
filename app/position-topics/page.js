@@ -75,7 +75,9 @@ export default function PositionTopicsPage() {
         const m = {};
         data.data.forEach((map) => {
           // FIX: key is always the position _id string
-          const posKey = (map.position._id || map.position).toString();
+          const posKey = map.position?._id?.toString() || map.position?.toString();
+          if (!posKey) return;
+          
           m[posKey] = map.topicIds.map((t) => (t._id || t).toString());
         });
         setMappings(m);
@@ -235,18 +237,16 @@ export default function PositionTopicsPage() {
                   <div key={posId} className="group flex items-center gap-1">
                     <button
                       onClick={() => setSelectedPosition(posId)}
-                      className={`flex-1 text-left px-3 py-2 rounded-lg text-sm transition flex justify-between items-center ${
-                        isSelected ? 'bg-green-700 text-white' : 'hover:bg-gray-100'
-                      }`}
+                      className={`flex-1 text-left px-3 py-2 rounded-lg text-sm transition flex justify-between items-center ${isSelected ? 'bg-green-700 text-white' : 'hover:bg-gray-100'
+                        }`}
                     >
                       <span className="truncate">{pos.name}</span>
                       {count > 0 && (
                         <span
-                          className={`ml-2 text-xs px-2 py-0.5 rounded-full shrink-0 ${
-                            isSelected
+                          className={`ml-2 text-xs px-2 py-0.5 rounded-full shrink-0 ${isSelected
                               ? 'bg-green-500 text-white'
                               : 'bg-green-100 text-green-700'
-                          }`}
+                            }`}
                         >
                           {count}
                         </span>
@@ -411,11 +411,10 @@ export default function PositionTopicsPage() {
                 <div
                   key={posId}
                   onClick={() => setSelectedPosition(posId)}
-                  className={`bg-white rounded-xl shadow-sm p-4 cursor-pointer border-2 transition ${
-                    selectedPosition === posId
+                  className={`bg-white rounded-xl shadow-sm p-4 cursor-pointer border-2 transition ${selectedPosition === posId
                       ? 'border-green-500'
                       : 'border-transparent hover:border-green-200'
-                  }`}
+                    }`}
                 >
                   <p className="text-sm font-medium text-gray-700 truncate">{posName}</p>
                   <p className="text-2xl font-bold text-green-700 mt-1">{topicIds.length}</p>

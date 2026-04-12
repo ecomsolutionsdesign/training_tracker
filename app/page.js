@@ -232,7 +232,7 @@ export default function Dashboard() {
                                                     {topics.slice(0, 5).map(t => t.topic).join(', ') || 'Unknown Topic'}
                                                     {topics.length > 5 && ` (+${topics.length - 5} more)`}
                                                 </p>
-                                                <p className="text-sm text-gray-600">Trainer: {schedule.trainerName || 'N/A'}</p>
+                                                <p className="text-sm text-gray-600">Trainer: {schedule.trainer?.name || 'N/A'}</p>
                                             </div>
                                             <span className="text-sm text-gray-700 font-bold">{new Date(schedule.date).toLocaleDateString('en-GB', {
                                                 day: '2-digit',

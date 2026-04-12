@@ -190,7 +190,7 @@ export default function ReportsPage() {
             monthlyData[monthKey].push({
                 date: formatDate(date),
                 topics: topics.map(t => t.topic).join(', '),
-                trainer: schedule.trainerName || 'N/A',
+                trainer: schedule.trainer?.name || 'N/A',
                 departments: [...new Set(topics.map(t => t.department))].join(', '),
                 totalParticipants: assignedEmps.length,
                 attended: attendedRecords.length,
@@ -267,7 +267,7 @@ export default function ReportsPage() {
             filteredSchedules.forEach(schedule => {
                 const scheduleDate = formatDate(schedule.date);
                 const topics = schedule.topicIds?.map(t => t.topic).join(', ') || 'Unknown Topic';
-                const trainerName = schedule.trainerName || 'N/A';
+                const trainerName = schedule.trainer?.name || 'N/A';
 
                 const wasInvited = schedule.employeeIds?.some(e => (e._id || e) === emp._id);
                 const invitedStatus = wasInvited ? 'Yes' : 'No';

@@ -42,13 +42,21 @@ function SignInContent() {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-green-900 to-green-700 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-green-900 to-green-700 flex items-center justify-center p-4 relative">
+
+            {/* ✅ Top-right Home button */}
+            <button
+                onClick={() => router.push('/')}
+                className="absolute top-4 right-4 px-3 py-1.5 bg-white text-green-800 hover:bg-green-50 rounded-lg flex items-center gap-1.5 transition text-sm font-medium shadow"
+            >
+                Home
+            </button>
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8">
                 <div className="flex items-center justify-center gap-2 mb-6">
                     <BookOpen className="w-10 h-10 text-green-700" />
                     <h1 className="text-2xl font-bold text-gray-800">Ktex Training System</h1>
                 </div>
-                
+
                 <h2 className="text-xl font-semibold text-center mb-6 text-gray-700">
                     Sign In
                 </h2>
@@ -107,9 +115,9 @@ function SignInContent() {
 }
 
 export default function SignIn() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <SignInContent />
-    </Suspense>
-  );
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <SignInContent />
+        </Suspense>
+    );
 }
