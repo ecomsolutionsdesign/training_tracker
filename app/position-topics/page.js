@@ -551,12 +551,14 @@ export default function PositionTopicsPage() {
                   <p className="text-2xl font-bold text-green-700 mt-1">{topicIds.length}</p>
                   <p className="text-xs text-gray-500 mb-3">topics assigned</p>
                   <div className="flex gap-2">
+                    {canEdit && (
                     <button
                       onClick={() => setSelectedPosition(posId)}
                       className="flex-1 text-xs px-2 py-1 bg-green-700 text-white rounded hover:bg-green-800 transition"
                     >
                       Edit
                     </button>
+                    )}
                     <button
                       onClick={() => setCardModalPosition(posId)}
                       className="flex-1 text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center justify-center gap-1"
