@@ -359,23 +359,6 @@ export async function GET(request) {
             });
         });
 
-        // const rows = allTopics
-        //     .map((t) => {
-        //         const tid = t._id.toString();
-        //         return {
-        //             topic: t.topic,
-        //             dept: t.department,
-        //             duration: t.duration || '',
-        //             trainerName: t.trainerName || '',
-        //             attended: completedTopicIds.has(tid),
-        //             attendedDate: topicDateMap[tid] || '',
-        //         };
-        //     })
-        //     .sort((a, b) => {
-        //         if (a.attended !== b.attended) return a.attended ? -1 : 1;
-        //         return a.topic.localeCompare(b.topic);
-        //     });
-
         // In the GET handler, replace the rows mapping:
         const rows = allTopics
             .map((t) => {

@@ -20,9 +20,9 @@ import {
 const NAV_ITEMS = [
   { path: '/', label: 'Dashboard', icon: TrendingUp, public: true },
   // qa-officer and above
-  { path: '/employees', label: 'Employees', icon: Users, roles: ['admin', 'qa-officer'] },
-  { path: '/topics', label: 'Topics', icon: BookOpen, roles: ['admin', 'qa-officer'] },
-  { path: '/position-topics', label: 'Position Topics', icon: Briefcase, roles: ['admin', 'qa-officer'] },
+  { path: '/employees', label: 'Employees', icon: Users, roles: ['admin', 'qa-officer', 'department-head'] },
+  { path: '/topics', label: 'Topics', icon: BookOpen, roles: ['admin', 'qa-officer', 'department-head'] },
+  { path: '/position-topics', label: 'Position Topics', icon: Briefcase, roles: ['admin', 'qa-officer', 'department-head'] },
   
   // department-head and above
   { path: '/schedules', label: 'Schedules', icon: Calendar, roles: ['admin', 'qa-officer', 'department-head'] },

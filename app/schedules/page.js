@@ -100,14 +100,6 @@ export default function SchedulesPage() {
         return attendances.some(a => (a.scheduleId?._id || a.scheduleId) === scheduleId);
     };
 
-    // const canMarkAttendance = (scheduleDate) => {
-    //     const today = new Date();
-    //     today.setHours(0, 0, 0, 0);
-    //     const schedule = new Date(scheduleDate);
-    //     schedule.setHours(0, 0, 0, 0);
-    //     return schedule <= today;
-    // };
-
     const openModal = (item = null) => {
         if (item) {
             const scheduleDate = new Date(item.date);
@@ -360,21 +352,12 @@ export default function SchedulesPage() {
                                                 <p>Completion: <span className={`font-semibold ${attendanceRate >= 75 ? 'text-green-600' : 'text-orange-600'}`}>{attendanceRate}%</span></p>
                                             </div>
                                         </div>
-
-                                        {/* <div className="flex gap-2 mt-4">
-                                            <button 
-                                                onClick={() => openDetailModal(schedule)} 
-                                                className="flex-1 px-3 py-2 text-lg bg-green-700 text-white rounded-lg hover:bg-green-800 transition"
-                                            >
-                                                View Details
-                                            </button>
-                                        </div> */}
                                         <div className="flex gap-2 mt-4">
                                             <button
                                                 onClick={() => openDetailModal(schedule)}
                                                 className={`flex-1 px-3 py-2 text-lg text-white rounded-lg transition ${isAttendanceMarked(schedule._id)
-                                                    ? "bg-green-700 hover:bg-green-800"  // Default color
-                                                    : "bg-orange-600 hover:bg-orange-700" // Color for pending attendance
+                                                    ? "bg-green-700 hover:bg-green-800"
+                                                    : "bg-orange-600 hover:bg-orange-700"
                                                     }`}
                                             >
                                                 {isAttendanceMarked(schedule._id) ? "View Details" : "View Details (Attendance Pending)"}

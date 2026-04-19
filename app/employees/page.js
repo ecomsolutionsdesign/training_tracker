@@ -26,6 +26,13 @@ export default function EmployeesPage() {
         position: '', // stores the Position ObjectId
         role: 'user',
     });
+    const isQaOfficer = session?.user?.role === 'qa-officer';
+    const isDeptHead = session?.user?.role === 'department-head';
+
+    const canEdit = isAdmin || isQaOfficer;
+    const canToggle = isAdmin || isQaOfficer;
+    const canDelete = isAdmin;
+    const canAdd = isAdmin || isQaOfficer;
 
     // FIX: include showDeactivated in deps so toggling it re-fetches
     useEffect(() => {
@@ -225,8 +232,8 @@ export default function EmployeesPage() {
                         <button
                             onClick={() => setShowDeactivated((prev) => !prev)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition text-sm font-medium ${showDeactivated
-                                    ? 'bg-amber-50 border-amber-400 text-amber-700'
-                                    : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
+                                ? 'bg-amber-50 border-amber-400 text-amber-700'
+                                : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
                                 }`}
                         >
                             {showDeactivated ? (
@@ -248,12 +255,14 @@ export default function EmployeesPage() {
                 <div className="bg-white rounded-xl shadow-md p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold">Employees ({filteredEmployees.length})</h2>
-                        <button
-                            onClick={() => openModal()}
-                            className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" /> Add Employee
-                        </button>
+                        {canAdd && (
+                            <button
+                                onClick={() => openModal()}
+                                className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" /> Add Employee
+                            </button>
+                        )}
                     </div>
 
                     <div className="overflow-x-auto">
@@ -311,8 +320,7 @@ export default function EmployeesPage() {
 
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                {/* Edit: admin only */}
-                                                {isAdmin && (
+                                                {canEdit && (
                                                     <button
                                                         onClick={() => openModal(emp)}
                                                         disabled={!emp.isActive}
@@ -322,7 +330,7 @@ export default function EmployeesPage() {
                                                     </button>
                                                 )}
 
-                                                {isAdmin && (
+                                                {canToggle && (
                                                     <button
                                                         onClick={() => toggleActive(emp)}
                                                         disabled={togglingId === emp._id}
@@ -332,7 +340,7 @@ export default function EmployeesPage() {
                                                     </button>
                                                 )}
 
-                                                {isAdmin && !emp.isActive && (
+                                                {canDelete && !emp.isActive && (
                                                     <button
                                                         onClick={() => deleteEmployee(emp._id)}
                                                         className="text-red-600 hover:text-red-800"

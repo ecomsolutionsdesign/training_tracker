@@ -103,12 +103,6 @@ function SignInContent() {
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>
-
-                {/* <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm font-semibold text-blue-900 mb-2">Default Login Credentials:</p>
-                    <p className="text-xs text-blue-800">Email: admin@ktex.com</p>
-                    <p className="text-xs text-blue-800">Password: admin123</p>
-                </div> */}
             </div>
         </div>
     );
