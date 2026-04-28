@@ -20,8 +20,14 @@ export async function POST(request) {
 
   try {
     await connectDB();
-    const { name } = await request.json();
-    const newPosition = await Position.create({ name });
+    const body = await request.json();
+    const { name } = body;
+
+    if (!name || !name.trim()) {
+      return NextResponse.json({ success: false, error: 'Position name is required' }, { status: 400 });
+    }
+
+    const newPosition = await Position.create({ name: name.trim() });
     return NextResponse.json({ success: true, data: newPosition }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Position already exists or invalid' }, { status: 400 });

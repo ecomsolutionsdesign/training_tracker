@@ -3,10 +3,375 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '@/components/Layout';
-import { Search, Save, CheckSquare, ChevronDown, ChevronUp, Plus, Trash2, X, Eye } from 'lucide-react';
+import { Search, Save, CheckSquare, ChevronDown, ChevronUp, Plus, Trash2, X, Eye, FileText, Edit3 } from 'lucide-react';
 import { DEPARTMENTS } from '@/constants/appConstants';
 import { useSession } from 'next-auth/react';
 
+// ─── JD Empty State ───────────────────────────────────────────────────────────
+const EMPTY_JD = {
+  reportingTo: '',
+  employmentType: '',
+  qualifications: '',
+  experienceRequired: '',
+  responsibilities: [''],
+  requirements: [''],
+};
+
+const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Temporary'];
+
+// ─── Dynamic list editor (responsibilities / requirements) ────────────────────
+function DynamicList({ label, items, onChange, placeholder, disabled }) {
+  const add = () => onChange([...items, '']);
+  const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
+  const update = (i, val) => onChange(items.map((v, idx) => (idx === i ? val : v)));
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <label className="block text-sm font-semibold text-gray-700">{label}</label>
+        {!disabled && (
+          <button
+            type="button"
+            onClick={add}
+            className="flex items-center gap-1 text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition"
+          >
+            <Plus className="w-3 h-3" /> Add
+          </button>
+        )}
+      </div>
+      <div className="space-y-2">
+        {items.map((item, i) => (
+          <div key={i} className="flex gap-2 items-start">
+            <span className="text-gray-400 text-xs mt-2.5 w-5 shrink-0">{i + 1}.</span>
+            <input
+              type="text"
+              value={item}
+              onChange={(e) => update(i, e.target.value)}
+              disabled={disabled}
+              placeholder={placeholder}
+              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none disabled:bg-gray-50 disabled:text-gray-500"
+            />
+            {!disabled && items.length > 1 && (
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="mt-1 text-red-400 hover:text-red-600 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        ))}
+        {items.length === 0 && !disabled && (
+          <p className="text-xs text-gray-400 italic">No items yet. Click Add.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── JD View Modal ────────────────────────────────────────────────────────────
+function JDViewModal({ position, onClose, onEdit, canEdit }) {
+  if (!position) return null;
+  const jd = position;
+  const hasJD =
+    jd.reportingTo || jd.employmentType || jd.qualifications ||
+    jd.experienceRequired ||
+    (jd.responsibilities && jd.responsibilities.length > 0) ||
+    (jd.requirements && jd.requirements.length > 0);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[88vh] flex flex-col">
+        {/* Header */}
+        <div className="bg-linear-to-r from-green-800 to-green-600 text-white rounded-t-2xl p-5">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-green-200 text-xs font-medium uppercase tracking-widest mb-1">Job Description</p>
+              <h2 className="text-2xl font-bold">{position.name}</h2>
+            </div>
+            <button onClick={onClose} className="text-green-200 hover:text-white transition p-1">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          {/* Quick meta pills */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {jd.employmentType && (
+              <span className="px-3 py-1 bg-green-700 bg-opacity-60 rounded-full text-xs font-medium">
+                {jd.employmentType}
+              </span>
+            )}
+            {jd.experienceRequired && (
+              <span className="px-3 py-1 bg-green-700 bg-opacity-60 rounded-full text-xs font-medium">
+                Exp: {jd.experienceRequired}
+              </span>
+            )}
+            {jd.reportingTo && (
+              <span className="px-3 py-1 bg-green-700 bg-opacity-60 rounded-full text-xs font-medium">
+                Reports to: {jd.reportingTo}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto flex-1 p-5 space-y-5">
+          {!hasJD ? (
+            <div className="text-center py-12 text-gray-400">
+              <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="font-medium">No Job Description added yet.</p>
+              {canEdit && (
+                <p className="text-sm mt-1">Click "Edit JD" to add one.</p>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Info grid */}
+              {(jd.qualifications || jd.experienceRequired || jd.reportingTo || jd.employmentType) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {jd.qualifications && (
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Qualification</p>
+                      <p className="text-sm text-gray-800">{jd.qualifications}</p>
+                    </div>
+                  )}
+                  {jd.experienceRequired && (
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Experience</p>
+                      <p className="text-sm text-gray-800">{jd.experienceRequired}</p>
+                    </div>
+                  )}
+                  {jd.reportingTo && (
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Reporting To</p>
+                      <p className="text-sm text-gray-800">{jd.reportingTo}</p>
+                    </div>
+                  )}
+                  {jd.employmentType && (
+                    <div className="bg-gray-50 rounded-xl p-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Employment Type</p>
+                      <p className="text-sm text-gray-800">{jd.employmentType}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Responsibilities */}
+              {jd.responsibilities && jd.responsibilities.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-green-600 rounded-full inline-block" />
+                    Responsibilities
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {jd.responsibilities.map((r, i) => (
+                      <li key={i} className="flex gap-2 items-start text-sm text-gray-700">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Requirements */}
+              {jd.requirements && jd.requirements.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-blue-500 rounded-full inline-block" />
+                    Requirements & Skills
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {jd.requirements.map((r, i) => (
+                      <li key={i} className="flex gap-2 items-start text-sm text-gray-700">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t flex gap-3">
+          {canEdit && (
+            <button
+              onClick={onEdit}
+              className="flex-1 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition text-sm font-medium flex items-center justify-center gap-2"
+            >
+              <Edit3 className="w-4 h-4" /> Edit JD
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── JD Edit Modal ────────────────────────────────────────────────────────────
+function JDEditModal({ position, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    reportingTo: position.reportingTo || '',
+    employmentType: position.employmentType || '',
+    qualifications: position.qualifications || '',
+    experienceRequired: position.experienceRequired || '',
+    responsibilities: position.responsibilities?.length > 0 ? position.responsibilities : [''],
+    requirements: position.requirements?.length > 0 ? position.requirements : [''],
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const set = (field, val) => setForm((prev) => ({ ...prev, [field]: val }));
+
+  const save = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/positions/${position._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onSaved(data.data);
+      } else {
+        setError(data.error || 'Failed to save.');
+      }
+    } catch (e) {
+      setError('Network error. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center p-5 border-b">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Edit Job Description</h3>
+            <p className="text-sm text-gray-500 mt-0.5">{position.name}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form body */}
+        <div className="overflow-y-auto flex-1 p-5 space-y-5">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Row 1: Reporting To + Employment Type */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Reporting To</label>
+              <input
+                type="text"
+                value={form.reportingTo}
+                onChange={(e) => set('reportingTo', e.target.value)}
+                placeholder="e.g. Quality Manager"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Employment Type</label>
+              <select
+                value={form.employmentType}
+                onChange={(e) => set('employmentType', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none bg-white"
+              >
+                <option value="">Select type</option>
+                {EMPLOYMENT_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 2: Qualifications + Experience */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Qualification</label>
+              <input
+                type="text"
+                value={form.qualifications}
+                onChange={(e) => set('qualifications', e.target.value)}
+                placeholder="e.g. B.Sc. Engineering"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Experience Required</label>
+              <input
+                type="text"
+                value={form.experienceRequired}
+                onChange={(e) => set('experienceRequired', e.target.value)}
+                placeholder="e.g. 3-5 Years"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Responsibilities */}
+          <div className="border border-gray-100 rounded-xl p-4 bg-gray-50">
+            <DynamicList
+              label="Responsibilities"
+              items={form.responsibilities}
+              onChange={(val) => set('responsibilities', val)}
+              placeholder="e.g. Oversee quality inspection process"
+            />
+          </div>
+
+          {/* Requirements */}
+          <div className="border border-gray-100 rounded-xl p-4 bg-gray-50">
+            <DynamicList
+              label="Requirements & Skills"
+              items={form.requirements}
+              onChange={(val) => set('requirements', val)}
+              placeholder="e.g. ISO 9001 knowledge"
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t flex gap-3">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="flex-1 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Saving…' : 'Save Job Description'}
+          </button>
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function PositionTopicsPage() {
   const { data: session } = useSession();
   const [topics, setTopics] = useState([]);
@@ -20,10 +385,13 @@ export default function PositionTopicsPage() {
   const [expandedDepts, setExpandedDepts] = useState({});
   const [dbPositions, setDbPositions] = useState([]);
   const [newPosName, setNewPosName] = useState('');
-  const [showPreview, setShowPreview] = useState(true);
+
+  // JD modal state
+  const [jdViewPosition, setJdViewPosition] = useState(null);   // full position object for view
+  const [jdEditPosition, setJdEditPosition] = useState(null);   // full position object for edit
 
   // Card detail modal state
-  const [cardModalPosition, setCardModalPosition] = useState(null); // posId for modal
+  const [cardModalPosition, setCardModalPosition] = useState(null);
 
   const isAdmin = session?.user?.role === 'admin';
   const isQaOfficer = session?.user?.role === 'qa-officer';
@@ -102,13 +470,11 @@ export default function PositionTopicsPage() {
     [selectedPosition, mappings]
   );
 
-  // Full topic objects for selected IDs
   const selectedTopicObjects = useMemo(
     () => topics.filter((t) => selectedTopicIds.includes(t._id.toString())),
     [topics, selectedTopicIds]
   );
 
-  // Group selected topics by department for the preview panel
   const selectedTopicsGrouped = useMemo(() => {
     const groups = {};
     selectedTopicObjects.forEach((t) => {
@@ -170,6 +536,29 @@ export default function PositionTopicsPage() {
     }
   };
 
+  // ── JD handlers ────────────────────────────────────────────────
+  const openJdView = (posId) => {
+    const pos = dbPositions.find((p) => p._id.toString() === posId);
+    if (pos) setJdViewPosition(pos);
+  };
+
+  const openJdEdit = (posId) => {
+    const pos = dbPositions.find((p) => p._id.toString() === posId);
+    if (pos) {
+      setJdViewPosition(null);
+      setJdEditPosition(pos);
+    }
+  };
+
+  const handleJdSaved = (updatedPosition) => {
+    setDbPositions((prev) =>
+      prev.map((p) => (p._id === updatedPosition._id ? updatedPosition : p))
+    );
+    setJdEditPosition(null);
+    // Re-open view modal with updated data
+    setJdViewPosition(updatedPosition);
+  };
+
   const filteredPositions = dbPositions.filter((p) =>
     p.name.toLowerCase().includes(positionSearch.toLowerCase())
   );
@@ -206,7 +595,18 @@ export default function PositionTopicsPage() {
   const getPositionName = (id) =>
     dbPositions.find((p) => p._id.toString() === id)?.name || id;
 
-  // Topics for card detail modal
+  const positionHasJD = (posId) => {
+    const pos = dbPositions.find((p) => p._id.toString() === posId);
+    if (!pos) return false;
+    return !!(
+      pos.reportingTo || pos.qualifications || pos.experienceRequired ||
+      pos.employmentType ||
+      (pos.responsibilities && pos.responsibilities.length > 0) ||
+      (pos.requirements && pos.requirements.length > 0)
+    );
+  };
+
+  // Card detail modal topics
   const cardModalTopics = useMemo(() => {
     if (!cardModalPosition) return [];
     const ids = mappings[cardModalPosition] || [];
@@ -228,12 +628,12 @@ export default function PositionTopicsPage() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Position → Training Topics</h1>
           <p className="text-gray-600 mt-1">
-            Assign required training topics to each job position.
+            Assign required training topics and manage Job Descriptions for each position.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Position list */}
+          {/* ── Left: Position list ── */}
           <div className="bg-white rounded-xl shadow-md p-4">
             <h2 className="text-lg font-bold mb-3">Job Positions</h2>
 
@@ -244,6 +644,7 @@ export default function PositionTopicsPage() {
                   placeholder="New Position..."
                   value={newPosName}
                   onChange={(e) => setNewPosName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddPosition()}
                   className="flex-1 px-3 py-1 border rounded text-sm"
                 />
                 <button
@@ -266,11 +667,12 @@ export default function PositionTopicsPage() {
               <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </div>
 
-            <div className="space-y-1 max-h-96 overflow-y-auto">
+            <div className="space-y-1 max-h-120 overflow-y-auto">
               {filteredPositions.map((pos) => {
                 const posId = pos._id.toString();
                 const count = (mappings[posId] || []).length;
                 const isSelected = posId === selectedPosition;
+                const hasJD = positionHasJD(posId);
 
                 return (
                   <div key={posId} className="group flex items-center gap-1">
@@ -280,7 +682,21 @@ export default function PositionTopicsPage() {
                         isSelected ? 'bg-green-700 text-white' : 'hover:bg-gray-100'
                       }`}
                     >
-                      <span className="truncate">{pos.name}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="truncate">{pos.name}</span>
+                        {hasJD && (
+                          <span
+                            title="Has Job Description"
+                            className={`shrink-0 text-xs px-1.5 py-0.5 rounded font-medium ${
+                              isSelected
+                                ? 'bg-green-500 text-white'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}
+                          >
+                            JD
+                          </span>
+                        )}
+                      </div>
                       {count > 0 && (
                         <span
                           className={`ml-2 text-xs px-2 py-0.5 rounded-full shrink-0 ${
@@ -293,6 +709,18 @@ export default function PositionTopicsPage() {
                         </span>
                       )}
                     </button>
+
+                    {/* JD button */}
+                    <button
+                      onClick={() => openJdView(posId)}
+                      title="View / Edit Job Description"
+                      className={`p-2 rounded transition text-blue-500 hover:bg-blue-50 hover:text-blue-700 ${
+                        hasJD ? 'opacity-100' : 'opacity-40 hover:opacity-70'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4" />
+                    </button>
+
                     {canAddDeletePosition && (
                       <button
                         onClick={() => handleDeletePosition(posId, pos.name)}
@@ -307,7 +735,7 @@ export default function PositionTopicsPage() {
             </div>
           </div>
 
-          {/* Right: Topic assignment — now takes 2 cols, splits into assign + preview */}
+          {/* ── Right: Topic assignment ── */}
           <div className="lg:col-span-2 space-y-4">
             {!selectedPosition ? (
               <div className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center justify-center py-20 text-gray-400">
@@ -319,11 +747,22 @@ export default function PositionTopicsPage() {
               <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
                 {/* Topic assignment panel — 3/5 width */}
                 <div className="xl:col-span-3 bg-white rounded-xl shadow-md p-4">
+                  {/* Position header with JD button */}
                   <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
                     <div>
-                      <h2 className="text-lg font-bold text-gray-900">
-                        {getPositionName(selectedPosition)}
-                      </h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-bold text-gray-900">
+                          {getPositionName(selectedPosition)}
+                        </h2>
+                        <button
+                          onClick={() => openJdView(selectedPosition)}
+                          className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition border border-blue-200"
+                          title="View Job Description"
+                        >
+                          <FileText className="w-3 h-3" />
+                          {positionHasJD(selectedPosition) ? 'View JD' : 'Add JD'}
+                        </button>
+                      </div>
                       <p className="text-sm text-gray-500">
                         {selectedCount} of {totalCount} topics selected
                       </p>
@@ -455,9 +894,7 @@ export default function PositionTopicsPage() {
                 {/* Selected topics preview panel — 2/5 width */}
                 <div className="xl:col-span-2 bg-white rounded-xl shadow-md p-4 flex flex-col">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-sm font-bold text-gray-700">
-                      Selected Topics
-                    </h3>
+                    <h3 className="text-sm font-bold text-gray-700">Selected Topics</h3>
                     <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
                       {selectedCount} total
                     </span>
@@ -466,7 +903,6 @@ export default function PositionTopicsPage() {
                   {selectedCount === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-8">
                       <p className="text-sm">No topics selected yet.</p>
-                      <p className="text-xs mt-1">Check topics on the left to add them here.</p>
                     </div>
                   ) : (
                     <div className="flex-1 overflow-y-auto max-h-96 space-y-3 pr-1">
@@ -500,7 +936,6 @@ export default function PositionTopicsPage() {
                     </div>
                   )}
 
-                  {/* Dept breakdown footer */}
                   {selectedCount > 0 && (
                     <div className="mt-3 pt-3 border-t border-gray-100">
                       <p className="text-xs text-gray-500 font-medium mb-2">By department</p>
@@ -538,6 +973,7 @@ export default function PositionTopicsPage() {
             .slice(0, 8)
             .map(([posId, topicIds]) => {
               const posName = getPositionName(posId);
+              const hasJD = positionHasJD(posId);
               return (
                 <div
                   key={posId}
@@ -547,18 +983,32 @@ export default function PositionTopicsPage() {
                       : 'border-transparent hover:border-green-200'
                   }`}
                 >
-                  <p className="text-sm font-medium text-gray-700 truncate">{posName}</p>
+                  <div className="flex justify-between items-start mb-1">
+                    <p className="text-sm font-medium text-gray-700 truncate flex-1">{posName}</p>
+                    {hasJD && (
+                      <span className="ml-1 shrink-0 text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">
+                        JD
+                      </span>
+                    )}
+                  </div>
                   <p className="text-2xl font-bold text-green-700 mt-1">{topicIds.length}</p>
                   <p className="text-xs text-gray-500 mb-3">topics assigned</p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5 flex-wrap">
                     {canEdit && (
-                    <button
-                      onClick={() => setSelectedPosition(posId)}
-                      className="flex-1 text-xs px-2 py-1 bg-green-700 text-white rounded hover:bg-green-800 transition"
-                    >
-                      Edit
-                    </button>
+                      <button
+                        onClick={() => setSelectedPosition(posId)}
+                        className="flex-1 text-xs px-2 py-1 bg-green-700 text-white rounded hover:bg-green-800 transition"
+                      >
+                        Topics
+                      </button>
                     )}
+                    <button
+                      onClick={() => openJdView(posId)}
+                      className="flex-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition flex items-center justify-center gap-1 border border-blue-200"
+                    >
+                      <FileText className="w-3 h-3" />
+                      JD
+                    </button>
                     <button
                       onClick={() => setCardModalPosition(posId)}
                       className="flex-1 text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center justify-center gap-1"
@@ -572,7 +1022,26 @@ export default function PositionTopicsPage() {
         </div>
       </div>
 
-      {/* Card detail modal */}
+      {/* ── JD View Modal ── */}
+      {jdViewPosition && (
+        <JDViewModal
+          position={jdViewPosition}
+          onClose={() => setJdViewPosition(null)}
+          onEdit={() => openJdEdit(jdViewPosition._id.toString())}
+          canEdit={canEdit}
+        />
+      )}
+
+      {/* ── JD Edit Modal ── */}
+      {jdEditPosition && (
+        <JDEditModal
+          position={jdEditPosition}
+          onClose={() => setJdEditPosition(null)}
+          onSaved={handleJdSaved}
+        />
+      )}
+
+      {/* ── Card detail modal (topics) ── */}
       {cardModalPosition && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[80vh] flex flex-col">
@@ -617,7 +1086,6 @@ export default function PositionTopicsPage() {
                   </div>
                 </div>
               ))}
-
               {cardModalTopics.length === 0 && (
                 <p className="text-center text-gray-400 py-8">No topics assigned.</p>
               )}
